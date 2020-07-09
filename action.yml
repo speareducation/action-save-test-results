@@ -1,0 +1,15 @@
+name: Spear Core Save Test Results
+description: A GitHub action to store test results in S3
+branding:
+  icon: check-circle
+  color: green
+runs:
+  using: docker
+  image: Dockerfile
+inputs:
+  s3Bucket:
+    description: The S3 Bucket
+    required: true
+  targetDir:
+    description: Target Directory
+    required: true
