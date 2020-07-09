@@ -10,6 +10,6 @@ inputs:
   s3Bucket:
     description: The S3 Bucket
     required: true
-  targetDir:
+  sourceDir:
     description: Target Directory
     required: true
