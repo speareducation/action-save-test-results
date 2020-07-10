@@ -3,7 +3,7 @@
 REPO_SLUG=$(basename $(git config --get remote.origin.url) | cut -d'.' -f1)
 COMMIT_HASH=$(git rev-parse HEAD)
 COMMIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-S3_BUCKET="s3://$INPUT_S3_BUCKET"
+S3_BUCKET="s3://$INPUT_S3BUCKET"
 S3_BRANCH_PATH="$S3_BUCKET/$REPO_SLUG/$COMMIT_BRANCH"
 
 [ -d "$INPUT_SOURCEDIR/databases" ] && rm -rf "$INPUT_SOURCEDIR/databases"
