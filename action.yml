@@ -24,6 +24,7 @@ runs:
         S3_BRANCH_PATH="$S3_BUCKET/$REPO_SLUG/$COMMIT_BRANCH"
 
         [ -d "${{ inputs.sourceDir }}/databases" ] && rm -rf "${{ inputs.sourceDir }}/databases"
+        [ -d storage/logs ] && mv storage/logs "${{ inputs.sourceDir }}/logs"
         git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
 
         echo "$S3_BRANCH_PATH/$COMMIT_HASH" > "${{ inputs.sourceDir }}/s3-path.txt"
