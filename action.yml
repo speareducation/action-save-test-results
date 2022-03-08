@@ -37,10 +37,10 @@ runs:
         aws s3 sync --only-show-errors --delete --acl=public-read "./${{ inputs.sourceDir }}" "$s3Target" && \
 
         # releases/production/2020-01-01 -> releases/production/latest
-        if [[ "${{ inputs.releaseTag }}" =~ "^releases/" ]]
+        if [[ "${{ inputs.releaseTag }}" =~ ^releases/ ]]
         then
-          latestPath="releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
-          echo "Updating $LATEST_PATH"
+          latestPath="s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
+          echo "Updating $latestPath"
           aws s3 sync --only-show-errors --delete --acl=public-read "$s3Target" "$latestPath"
         fi
 
