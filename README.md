@@ -17,6 +17,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
           s3Bucket: spear-core-test-coverage
-          targetDir: ./.ci-results
+          sourceDir: .ci-results
+          projectKey: ${{ steps.build-vars.outputs.projectKey }}
+          releaseTag: ${{ github.ref_name }}
 ```
 

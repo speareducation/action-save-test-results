@@ -7,37 +7,42 @@ inputs:
   s3Bucket:
     description: The S3 Bucket
     required: true
+  projectKey:
+    description: The project identifier or key
+    required: true
+  releaseTag:
+    description: The release tag or branch
+    required: true
   sourceDir:
     description: Target Directory
     required: true
+  
 
 runs:
   using: 'composite'
   steps:
-    - name: "Save Test Results"
+    - name: Prepare Source Directory
       shell: bash
-      run: |        
-        REPO_SLUG=$(basename $(git config --get remote.origin.url) | cut -d'.' -f1)
-        COMMIT_HASH=$(git rev-parse HEAD)
-        COMMIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        S3_BUCKET="s3://${{ inputs.s3Bucket }}"
-        S3_BRANCH_PATH="$S3_BUCKET/$REPO_SLUG/$COMMIT_BRANCH"
-
+      run: |
         [ -d "${{ inputs.sourceDir }}/databases" ] && rm -rf "${{ inputs.sourceDir }}/databases"
-        [ -d storage/logs ] && mv storage/logs "${{ inputs.sourceDir }}/logs"
+        [ -d storage/logs ] && cp -R storage/logs "${{ inputs.sourceDir }}/"
         git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
+        echo "$s3Target" > "${{ inputs.sourceDir }}/s3-path.txt"
 
-        echo "$S3_BRANCH_PATH/$COMMIT_HASH" > "${{ inputs.sourceDir }}/s3-path.txt"
-        echo "Uploading to $S3_BRANCH_PATH/$COMMIT_HASH"
-        aws s3 sync --only-show-errors --delete --acl=public-read "./${{ inputs.sourceDir }}" "$S3_BRANCH_PATH/$COMMIT_HASH" && \
+    - name: Save Test Results
+      shell: bash
+      run: |
+        s3Target="s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
 
-        # releases/sandbox/gl-123        -> releases/sandbox/gl-123/latest
+        echo "Uploading to $s3Target"
+        aws s3 sync --only-show-errors --delete --acl=public-read "./${{ inputs.sourceDir }}" "$s3Target" && \
+
         # releases/production/2020-01-01 -> releases/production/latest
-        # releases/staging/2020-01-01    -> releases/staging/latest
-        [[ "$COMMIT_BRANCH" =~ ^releases/(staging|production) ]] \
-            && LATEST_PATH="$(dirname "$S3_BRANCH_PATH")/latest" \
-            || LATEST_PATH="$S3_BRANCH_PATH/latest"
+        if [[ "${{ inputs.releaseTag }}" =~ "^releases/" ]]
+        then
+          latestPath="releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
+          echo "Updating $LATEST_PATH"
+          aws s3 sync --only-show-errors --delete --acl=public-read "$s3Target" "$latestPath"
+        fi
 
-        echo "Updating $LATEST_PATH"
-        aws s3 sync --only-show-errors --delete --acl=public-read "$S3_BRANCH_PATH/$COMMIT_HASH" "$LATEST_PATH"
 
