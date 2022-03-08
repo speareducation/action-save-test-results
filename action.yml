@@ -24,8 +24,8 @@ runs:
     - name: Prepare Source Directory
       shell: bash
       run: |
-        [ -d "${{ inputs.sourceDir }}/databases" ] && rm -rf "${{ inputs.sourceDir }}/databases"
-        [ -d storage/logs ] && cp -R storage/logs "${{ inputs.sourceDir }}/"
+        [ -d "${{ inputs.sourceDir }}/databases" ] && rm -rf "${{ inputs.sourceDir }}/databases" || true
+        [ -d storage/logs ] && cp -R storage/logs "${{ inputs.sourceDir }}/" || true
         git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
         echo "$s3Target" > "${{ inputs.sourceDir }}/s3-path.txt"
 
