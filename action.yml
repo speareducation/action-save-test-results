@@ -26,10 +26,6 @@ runs:
       shell: bash
       run: git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
 
-    - name: Add s3-path.txt
-      shell: bash
-      run: echo "$s3Target" > "${{ inputs.sourceDir }}/s3-path.txt"
-
     - name: Save Test Results
       shell: bash
       run: aws s3 sync --only-show-errors --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
