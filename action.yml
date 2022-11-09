@@ -21,27 +21,22 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Prepare Source Directory
+
+    - name: Add git-status.txt
       shell: bash
-      run: |
-        [ -d "${{ inputs.sourceDir }}/databases" ] && rm -rf "${{ inputs.sourceDir }}/databases" || true
-        git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
-        echo "$s3Target" > "${{ inputs.sourceDir }}/s3-path.txt"
+      run: git log -1 > "${{ inputs.sourceDir }}/git-status.txt"
+
+    - name: Add s3-path.txt
+      shell: bash
+      run: echo "$s3Target" > "${{ inputs.sourceDir }}/s3-path.txt"
 
     - name: Save Test Results
       shell: bash
-      run: |
-        s3Target="s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
+      run: aws s3 sync --only-show-errors --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
 
-        echo "Uploading to $s3Target"
-        aws s3 sync --only-show-errors --delete --acl=public-read "./${{ inputs.sourceDir }}" "$s3Target" && \
-
-        # releases/production/2020-01-01 -> releases/production/latest
-        if [[ "${{ inputs.releaseTag }}" =~ ^releases/ ]]
-        then
-          latestPath="s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
-          echo "Updating $latestPath"
-          aws s3 sync --only-show-errors --delete --acl=public-read "$s3Target" "$latestPath"
-        fi
+    - name: Save Latest Results
+      shell: bash
+      if: startswith(inputs.releaseTag, 'releases/')
+      run: aws s3 sync --only-show-errors --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
 
 
