@@ -28,11 +28,11 @@ runs:
 
     - name: Save Test Results
       shell: bash
-      run: aws s3 sync --only-show-errors --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
+      run: aws s3 sync --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/${{ inputs.releaseTag }}"
 
     - name: Save Latest Results
       shell: bash
       if: startswith(inputs.releaseTag, 'releases/')
-      run: aws s3 sync --only-show-errors --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
+      run: aws s3 sync --delete "./${{ inputs.sourceDir }}" "s3://${{ inputs.s3Bucket }}/${{ inputs.projectKey }}/releases/$(echo "${{ inputs.releaseTag }}" | cut -d/ -f2)/latest"
 
 
